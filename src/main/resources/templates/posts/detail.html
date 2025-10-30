@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${post.title}">게시글 상세</title>
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome (아이콘) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { max-width: 900px; }
+        .card { margin-top: 2rem; }
+        .comment-section { margin-top: 2rem; }
+        .comment-item { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+        .comment-author { font-weight: bold; }
+        .comment-author-badge { background-color: #0d6efd !important; }
+        .recommend-section { text-align: center; margin: 2rem 0; }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="container">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0" th:text="${post.title}">게시글 제목</h2>
+            <a href="/posts" class="btn btn-outline-secondary btn-sm">목록으로</a>
+        </div>
+
+        <div class="card-body">
+            <!-- 작성자, 작성일 -->
+            <div class="text-muted small mb-3">
+                <span>작성일: </span>
+                <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+            </div>
+            <!-- 게시글 내용 -->
+            <div class="card-text" style="min-height: 150px;" th:text="${post.content}">
+                게시글 내용이 여기에 들어갑니다.
+            </div>
+
+            <!-- 수정/삭제 버튼 (작성자 본인 + 로그인 시) -->
+            <div class="mt-4" sec:authorize="isAuthenticated()">
+                <!-- principal.name (UserDetails의 username)이 user_id와 동일한지 확인 -->
+                <div th:if="${#authentication.name == post.user.userId}">
+                    <a th:href="@{/posts/edit/{id}(id=${post.id})}" class="btn btn-sm btn-outline-primary">수정</a>
+                    <!-- 삭제는 POST 요청으로 변경 -->
+                    <form th:action="@{/posts/delete/{id}(id=${post.id})}" method="POST" class="d-inline"
+                          onsubmit="return confirm('정말로 삭제하시겠습니까?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ★★★ 추천 기능 섹션 ★★★ -->
+        <div class="card-footer bg-white recommend-section">
+            <form th:action="@{/posts/{id}/recommend(id=${post.id})}" method="POST">
+                <!-- 로그인한 사용자에게만 버튼이 보이도록 -->
+                <button type="submit" class="btn btn-lg"
+                        th:classappend="${isRecommended} ? 'btn-danger' : 'btn-outline-danger'"
+                        sec:authorize="isAuthenticated()">
+                    <!-- isRecommended 값에 따라 아이콘과 텍스트 변경 -->
+                    <i class="fa-solid fa-heart"></i>
+                    <span th:text="${isRecommended} ? ' 추천 취소' : ' 추천'"></span>
+                </button>
+
+                <!-- 로그인 안 한 사용자에게는 아이콘만 표시 (클릭 불가) -->
+                <span class="btn btn-lg btn-outline-danger disabled" sec:authorize="!isAuthenticated()">
+                    <i class="fa-solid fa-heart"></i>
+                </span>
+
+                <!-- 총 추천 수 -->
+                <h4 class="mt-2 mb-0">
+                    <span th:text="${post.recommendationCount}">0</span>
+                </h4>
+            </form>
+        </div>
+        <!-- ★★★ 추천 기능 끝 ★★★ -->
+    </div>
+
+    <!-- 댓글 섹션 -->
+    <div class="comment-section">
+        <h4 class="mb-3">댓글</h4>
+
+        <!-- 댓글 작성 폼 (로그인한 사용자에게만 보임) -->
+        <div class="card mb-4" sec:authorize="isAuthenticated()">
+            <div class="card-body">
+                <form th:action="@{/comments/create/{postId}(postId=${post.id})}" method="POST">
+                    <div class="mb-3">
+                        <textarea class="form-control" name="content" rows="3" placeholder="댓글을 입력하세요..." required></textarea>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">댓글 작성</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 댓글 목록 -->
+        <div class="card">
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(comments)}">
+                    <p class="text-muted">아직 댓글이 없습니다.</p>
+                </div>
+                <div th:each="comment : ${comments}" class="comment-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <!-- ★★★ 익명 댓글 로직 ★★★ -->
+                            <!-- anonymousId가 0이면 '작성자' 배지 -->
+                            <span th:if="${comment.anonymousId == 0}" class="comment-author badge bg-primary comment-author-badge">
+                                작성자
+                            </span>
+                            <!-- 0이 아니면 '익명' + 번호 -->
+                            <span th:unless="${comment.anonymousId == 0}" class="comment-author">
+                                익명 <span th:text="${comment.anonymousId}">1</span>
+                            </span>
+
+                            <span class="text-muted ms-2 small"
+                                  th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+                        </div>
+                        <!-- 댓글 삭제 버튼 (작성자 본인 + 로그인 시) -->
+                        <div sec:authorize="isAuthenticated()">
+                            <form th:if="${#authentication.name == comment.user.userId}"
+                                  th:action="@{/comments/{commentId}/delete(commentId=${comment.id})}" method="POST"
+                                  onsubmit="return confirm('댓글을 삭제하시겠습니까?');">
+                                <!-- (★중요★) 삭제 후 돌아올 postId를 전송 -->
+                                <input type="hidden" name="postId" th:value="${post.id}" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1">X</button>
+                            </form>
+                        </div>
+                    </div>
+                    <p class="mt-2 mb-0" th:text="${comment.content}">댓글 내용</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

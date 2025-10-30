@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security6">
+<!--
+  이 파일은 독립적으로 사용되지 않고, 다른 HTML 파일에 '조각(fragment)'으로 삽입됩니다.
+  (This file is not used independently, but is inserted as a 'fragment' into other HTML files.)
+-->
+
+<!--
+  th:fragment="header"
+  이 태그는 이 <nav> 부분이 'header'라는 이름의 조각임을 선언합니다.
+  다른 템플릿에서 th:replace="~{fragments/header :: header}" 로 이 부분을 불러올 수 있습니다.
+  (This tag declares that this <nav> section is a fragment named 'header'.
+  Other templates can load this section with th:replace="~{fragments/header :: header}".)
+-->
+<nav th:fragment="header" class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+    <div class="container-fluid">
+        <!-- 1. 로고 (메인 페이지로 이동) -->
+        <a class="navbar-brand" href="/">
+            <img src="https://placehold.co/100x30/007bff/white?text=LOGO" alt="Logo" style="height: 30px;">
+        </a>
+
+        <!-- 2. 네비게이션 링크 (게시판) -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <!-- '게시판' 링크를 /posts (게시글 목록)로 연결 -->
+                    <a class="nav-link" th:href="@{/posts}">게시판</a>
+                </li>
+                <!-- '인기글' 등 다른 메뉴 추가 가능 -->
+                <!--
+                <li class="nav-item">
+                    <a class="nav-link" href="#">인기글</a>
+                </li>
+                -->
+            </ul>
+        </div>
+
+        <!-- 3. 로그인/로그아웃 버튼 (★핵심★) -->
+        <div class="d-flex">
+            <!--
+              sec:authorize="isAuthenticated()"
+              Spring Security 태그: 현재 사용자가 '인증된 상태' (로그인한 상태)일 때만 이 태그 내부를 표시
+              (Spring Security tag: Only displays the content inside this tag if the user is 'authenticated' (logged in).)
+            -->
+            <div sec:authorize="isAuthenticated()">
+                <span class="navbar-text me-3">
+                    <!-- 현재 로그인한 사용자의 ID (userId)를 표시 -->
+                    <span sec:authentication="name"></span> 님
+                </span>
+                <!-- 로그아웃 버튼: POST 방식으로 /user/logout 요청 -->
+                <form th:action="@{/user/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">로그아웃</button>
+                </form>
+                <!-- '마이페이지' 버튼 추가 가능 -->
+                <!--
+                <a th:href="@{/mypage}" class="btn btn-outline-primary btn-sm ms-2">마이페이지</a>
+                -->
+            </div>
+
+            <!--
+              sec:authorize="!isAuthenticated()"
+              '!'가 붙었으므로: '인증되지 않은 상태' (로그아웃 상태)일 때만 이 태그 내부를 표시
+              (With '!': Only displays the content inside this tag if the user is 'not authenticated' (logged out).)
+            -->
+            <div sec:authorize="!isAuthenticated()">
+                <!-- 로그인 페이지로 이동 -->
+                <a th:href="@{/user/login}" class="btn btn-primary btn-sm me-2">로그인</a>
+                <!-- 회원가입 페이지로 이동 -->
+                <a th:href="@{/user/register}" class="btn btn-outline-primary btn-sm">회원가입</a>
+            </div>
+        </div>
+    </div>
+</nav>
+</html>
+
