@@ -31,7 +31,7 @@
 
 ## 실행 방법
 1. 프로젝트 클론 후 IDE에서 열기
-2. BoardApplication 실행
+2. Gradle -> board/Tasks/application/bootRun 실행
 3. 브라우저에서 `http://localhost:8080` 접속
 
 ## 주요 특징
