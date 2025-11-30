@@ -1,6 +1,5 @@
 package com.example.board.config;
 
-import com.example.board.service.UserService; // Spring이 UserDetailsService로 자동 인식
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +25,8 @@ public class SecurityConfig {
                         .requestMatchers("/", "/user/login", "/user/register", "/static/**", "/css/**", "/js/**").permitAll()
                         // /posts 및 하위 경로 모두 허용
                         .requestMatchers("/posts", "/posts/**").permitAll()
+                        // /user/** 경로 인증 필요 (마이페이지, 비밀번호 변경)
+                        .requestMatchers("/user/**").authenticated()
                         // 그 외는 인증 필요
                         .anyRequest().authenticated()
                 )

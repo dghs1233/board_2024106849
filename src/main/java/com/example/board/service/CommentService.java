@@ -8,6 +8,7 @@ import com.example.board.repository.PostRepository;
 import com.example.board.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +36,17 @@ public class CommentService {
     public List<Comment> findCommentsByPostId(Long postId) {
         // @Where 어노테이션 덕분에 is_del = false인 댓글만 조회됨
         return commentRepository.findByPostId(postId);
+    }
+
+    /**
+     * 특정 사용자가 작성한 댓글 수를 조회합니다.
+     * @param userId 사용자 ID
+     * @return 작성한 댓글 수
+     */
+    public long countByUserId(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+        return commentRepository.countByUser(user);
     }
 
     /**
@@ -114,5 +126,15 @@ public class CommentService {
         // 4. 삭제 (엔티티의 @SQLDelete가 논리적 삭제로 처리함)
         commentRepository.delete(comment);
     }
-}
 
+    /**
+     * 특정 사용자가 작성한 댓글을 조회합니다.
+     * @param userId 사용자 ID
+     * @return 사용자가 작성한 댓글 목록
+     */
+    public List<Comment> findCommentsByUserId(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+        return commentRepository.findByUserOrderByCreatedAtDesc(user);
+    }
+}

@@ -20,15 +20,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      */
     List<Comment> findByPostId(Long postId);
 
-    /**
-     * (★익명 기능★)
-     * 특정 게시글(Post)에서 특정 사용자(User)가 작성한 첫 번째 댓글을 찾습니다.
-     * (이 사용자의 기존 'anonymous_id'를 확인하기 위함)
-     * @param post 게시글 엔티티
-     * @param user 사용자 엔티티
-     * @return 댓글 (Optional)
-     */
-    Optional<Comment> findTopByPostAndUserOrderByCreatedAtAsc(Post post, User user);
     Optional<Comment> findFirstByPostAndUserAndAnonymousIdGreaterThanOrderByCreatedAtAsc(Post post, User user, int anonymousId);
     /**
      * (★익명 기능★)
@@ -39,5 +30,14 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      */
     @Query("SELECT MAX(c.anonymousId) FROM Comment c WHERE c.post = :post AND c.anonymousId > 0")
     Optional<Integer> findMaxAnonymousIdByPost(@Param("post") Post post);
+
+    long countByUser(User user);
+
+    /**
+     * 특정 사용자가 작성한 댓글을 최신순으로 조회합니다.
+     * @param user 사용자
+     * @return 사용자가 작성한 댓글 목록
+     */
+    List<Comment> findByUserOrderByCreatedAtDesc(User user);
 }
 

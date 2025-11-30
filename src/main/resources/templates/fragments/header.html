@@ -17,8 +17,7 @@
     <div class="container-fluid">
         <!-- 1. 로고 (메인 페이지로 이동) -->
         <a class="navbar-brand" href="/">
-            <img src="https://placehold.co/100x30/007bff/white?text=LOGO" alt="Logo" style="height: 30px;">
-        </a>
+            <img src="https://placehold.co/100x30/007bff/white?text=HYCU&font=Oswald" alt="Logo" style="height: 30px;"></a>
 
         <!-- 2. 네비게이션 링크 (게시판) -->
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -46,7 +45,7 @@
             <div sec:authorize="isAuthenticated()">
                 <span class="navbar-text me-3">
                     <!-- 현재 로그인한 사용자의 ID (userId)를 표시 -->
-                    <span sec:authentication="name"></span> 님
+                    <span sec:authentication="name"></span>
                 </span>
                 <!-- 로그아웃 버튼: POST 방식으로 /user/logout 요청 -->
                 <form th:action="@{/user/logout}" method="post" class="d-inline">
@@ -65,9 +64,8 @@
             -->
             <div sec:authorize="!isAuthenticated()">
                 <!-- 로그인 페이지로 이동 -->
-                <a th:href="@{/user/login}" class="btn btn-primary btn-sm me-2">로그인</a>
-                <!-- 회원가입 페이지로 이동 -->
-                <a th:href="@{/user/register}" class="btn btn-outline-primary btn-sm">회원가입</a>
+                <a th:href="@{/user/login}" class="btn btn-primary btn-sm me-2" style="width:100px">로그인</a>
+
             </div>
         </div>
     </div>

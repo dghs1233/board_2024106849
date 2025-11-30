@@ -51,15 +51,35 @@ public class PostService {
         return post; // 3. 게시글 반환
     }
 
-    // [추가된 메서드]
+
     /**
-     * 메인 페이지용 최신 게시글 5개를 조회합니다.
-     * @return 최신 게시글 5개 목록
+     * 인기글 5개를 조회합니다. (추천수 5이상, 추천수 내림차순)
+     * @return 인기글 5개 목록
      */
-    public List<Post> findLatest5() {
-        return postRepository.findTop5ByOrderByCreatedAtDesc();
+    public List<Post> findPopular5() {
+        return postRepository.findTop5ByRecommendationCountGreaterThanEqualOrderByRecommendationCountDesc(5);
+    }
+    /**
+     * 특정 사용자가 작성한 게시글 수를 조회합니다.
+     * @param userId 사용자 ID
+     * @return 작성한 게시글 수
+     */
+    public long countByUserId(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+        return postRepository.countByUser(user);
     }
 
+    /**
+     * 특정 사용자가 받은 총 추천수를 조회합니다.
+     * @param userId 사용자 ID
+     * @return 받은 총 추천수
+     */
+    public long getTotalRecommendationsByUserId(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+        return postRepository.sumRecommendationCountByUser(user);
+    }
     /**
      * 새 게시글 저장 (userId 기준)
      * @param post 저장할 Post 객체
@@ -119,6 +139,23 @@ public class PostService {
         }
 
         postRepository.delete(post);
+    }
+    /**
+     * 메인 페이지용 최신 게시글 10개를 조회합니다.
+     * @return 최신 게시글 10개 목록
+     */
+    public List<Post> findLatest10() {
+        return postRepository.findTop10ByOrderByCreatedAtDesc();
+    }
+    /**
+     * 특정 사용자가 작성한 게시글을 조회합니다.
+     * @param userId 사용자 ID
+     * @return 사용자가 작성한 게시글 목록
+     */
+    public List<Post> findPostsByUserId(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+        return postRepository.findByUserOrderByCreatedAtDesc(user);
     }
 }
 

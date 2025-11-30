@@ -1,7 +1,10 @@
 package com.example.board.repository;
 
 import com.example.board.model.Post;
+import com.example.board.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
@@ -21,5 +24,45 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      */
     List<Post> findTop5ByOrderByCreatedAtDesc();
 
+    /**
+     * 생성 날짜(createdAt)를 기준으로 내림차순 정렬하여
+     * 상위 10개의 게시글을 조회합니다. (메인 페이지용)
+     * @return 최신 게시글 10개 목록
+     */
+    List<Post> findTop10ByOrderByCreatedAtDesc();
+
     List<Post> findAllByOrderByCreatedAtDesc();
+
+    /**
+     * 추천수가 지정된 값 이상인 게시글을 추천수 내림차순으로 상위 5개 조회합니다.
+     * (인기글 목록용)
+     * @param minRecommendationCount 최소 추천수
+     * @return 인기글 5개 목록
+     */
+    List<Post> findTop5ByRecommendationCountGreaterThanEqualOrderByRecommendationCountDesc(Integer minRecommendationCount);
+
+    /**
+     * 특정 사용자가 작성한 게시글 수를 조회합니다.
+     * @param user 사용자
+     * @return 작성한 게시글 수
+     */
+    long countByUser(User user);
+
+    /**
+     * 특정 사용자가 작성한 게시글의 총 추천수를 조회합니다.
+     * @param user 사용자
+     * @return 총 추천수
+     */
+    @Query("SELECT COALESCE(SUM(p.recommendationCount), 0) FROM Post p WHERE p.user = :user")
+    Long sumRecommendationCountByUser(@Param("user") User user);
+
+    /**
+     * 특정 사용자가 작성한 게시글을 최신순으로 조회합니다.
+     * @param user 사용자
+     * @return 사용자가 작성한 게시글 목록
+     */
+    List<Post> findByUserOrderByCreatedAtDesc(User user);
+
+
+
 }

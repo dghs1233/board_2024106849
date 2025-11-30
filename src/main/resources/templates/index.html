@@ -34,19 +34,42 @@ Thymeleaf와 Spring Security 네임스페이스 추가
 
         <!-- 1. 공지사항 / 인기글 (70%) -->
         <div class="col-md-8">
-            <div class="card shadow-sm mb-3 main-content">
+            <div class="card shadow-sm mb-3 main-content h-100">
                 <div class="card-header bg-white fw-bold">
-                    공지사항 또는 인기글
+                    인기글 (추천수 5이상)
                 </div>
                 <div class="card-body">
-                    (공지사항 또는 인기글 목록이 여기에 표시됩니다.)
+                    <!-- 인기글 목록 표시 -->
+                    <div th:if="${popularPosts == null or popularPosts.isEmpty()}">
+                        <p class="text-muted">아직 추천수 5이상인 인기글이 없습니다.</p>
+                    </div>
+
+                    <ul class="list-group list-group-flush" th:unless="${popularPosts == null or popularPosts.isEmpty()}">
+                        <!-- th:each를 사용하여 5개의 인기글 반복 -->
+                        <li th:each="post : ${popularPosts}" class="list-group-item d-flex justify-content-between align-items-center">
+                            <!-- 제목 (링크 포함) -->
+                            <a th:href="@{/posts/{id}(id=${post.id})}"
+                               th:text="${post.title}"
+                               class="text-decoration-none text-dark fw-medium">
+                                인기글 제목
+                            </a>
+                            <!-- 추천수, 조회수, 작성일 -->
+                            <small class="text-muted">
+                                <span class="badge bg-danger me-2" th:text="'추천 ' + ${post.recommendationCount}">추천 5</span>
+                                조회수:
+                                <span th:text="${post.viewCount}" style="display: inline-block; width: 30px;">조회수</span>
+                                |
+                                <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}" >2025-11-29</span>
+                            </small>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
 
         <!-- 2. 접속 정보 (30%) -->
         <div class="col-md-4">
-            <div class="card shadow-sm mb-3 sidebar">
+            <div class="card shadow-sm mb-3 sidebar h-100">
                 <div class="card-header bg-white fw-bold">
                     접속 정보
                 </div>
@@ -57,12 +80,41 @@ Thymeleaf와 Spring Security 네임스페이스 추가
                         (이미지 요구사항 반영)
                     -->
                     <div sec:authorize="isAuthenticated()">
-                        <p class="mb-2">
-                            <strong th:text="${#authentication.name}">test_user_id</strong>님,
-                            환영합니다!
-                        </p>
-                        <a th:href="@{/user/logout}" class="btn btn-outline-secondary btn-sm w-100">로그아웃</a>
-                        <!-- TODO: '마이페이지' 버튼 추가 -->
+                        <div class="text-center mb-3">
+                            <p class="mb-2">
+                                <strong th:text="${#authentication.name}">test_user_id</strong>님,
+                                환영합니다!
+                            </p>
+                        </div>
+
+                        <!-- 사용자 활동 통계 -->
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <div class="border rounded p-2">
+                                    <div class="fs-5 fw-bold text-primary" th:text="${userPostCount}">0</div>
+                                    <small class="text-muted">작성글</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="border rounded p-2">
+                                    <div class="fs-5 fw-bold text-primary" th:text="${userCommentCount}">0</div>
+                                    <small class="text-muted">댓글</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="border rounded p-2">
+                                    <div class="fs-5 fw-bold text-primary" th:text="${userTotalRecommendations}">0</div>
+                                    <small class="text-muted">받은추천</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/user/logout}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm w-100 mb-2">로그아웃</button>
+                        </form>
+
+                        <!-- 마이페이지 버튼 추가 -->
+                        <a th:href="@{/user/mypage}" class="btn btn-outline-primary btn-sm w-100">마이페이지</a>
                     </div>
                     <div sec:authorize="isAnonymous()">
                         <p class="mb-2 text-muted">로그인이 필요합니다.</p>
@@ -71,6 +123,7 @@ Thymeleaf와 Spring Security 네임스페이스 추가
                 </div>
             </div>
         </div>
+
 
     </div> <!-- .row end -->
 
@@ -93,7 +146,7 @@ Thymeleaf와 Spring Security 네임스페이스 추가
                     </div>
 
                     <ul class="list-group list-group-flush" th:unless="${latestPosts == null or latestPosts.isEmpty()}">
-                        <!-- th:each를 사용하여 5개의 최신 글 반복 -->
+                        <!-- th:each를 사용하여 10개의 최신 글 반복 -->
                         <li th:each="post : ${latestPosts}" class="list-group-item d-flex justify-content-between align-items-center">
                             <!-- 제목 (링크 포함) -->
                             <a th:href="@{/posts/{id}(id=${post.id})}"

@@ -76,5 +76,34 @@ public class UserService implements UserDetailsService {
                 Collections.emptyList() // 현재는 권한(Role)을 사용하지 않음
         );
     }
+    /**
+     * 사용자 ID로 사용자 정보를 조회합니다.
+     * @param userId 사용자 ID
+     * @return 사용자 정보
+     */
+    public User findByUserId(String userId) {
+        return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
+    }
+
+    /**
+     * 비밀번호를 변경합니다.
+     * @param userId 사용자 ID
+     * @param currentPassword 현재 비밀번호
+     * @param newPassword 새 비밀번호
+     */
+    @Transactional
+    public void changePassword(String userId, String currentPassword, String newPassword) {
+        User user = findByUserId(userId);
+
+        // 현재 비밀번호 확인
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
+        }
+
+        // 새 비밀번호 암호화 후 저장
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }
 
